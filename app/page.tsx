@@ -4,101 +4,57 @@ import { useState } from "react"
 import { AuthSelection } from "@/components/auth/auth-selection"
 import { AdminLogin } from "@/components/auth/admin-login"
 import { CustomerAuth } from "@/components/auth/customer-auth"
+import { Sidebar } from "@/components/layout/sidebar"
+import { HomeSection } from "@/components/sections/home-section"
+import { WalletSection } from "@/components/sections/wallet-section"
+import { ProfileSection } from "@/components/sections/profile-section"
+import { ContactSection } from "@/components/sections/contact-section"
+import { AdminCredentialsSection } from "@/components/sections/admin-credentials-section"
 
-// Import the new dashboard components at the top
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
-import { UserDashboard } from "@/components/user/user-dashboard"
-
-type AuthState = "selection" | "admin-login" | "customer-auth" | "admin-dashboard" | "customer-dashboard"
+type AuthState = "selection" | "admin-login" | "customer-auth" | "dashboard"
 type UserRole = "admin" | "customer" | null
 
 export default function DrArabDataCenter() {
   const [authState, setAuthState] = useState<AuthState>("selection")
   const [userRole, setUserRole] = useState<UserRole>(null)
   const [user, setUser] = useState<any>(null)
-
-  // Trading state
-  const [buyAmount, setBuyAmount] = useState("")
-  const [sellAmount, setSellAmount] = useState("")
-  const [selectedNetwork, setSelectedNetwork] = useState("")
-  const [phoneNumber, setPhoneNumber] = useState("")
-
-  // Calculate buy rate (95% of original value)
-  const calculateBuyRate = (amount: number) => {
-    return (amount * 0.95).toFixed(2)
-  }
+  const [activeSection, setActiveSection] = useState("home")
 
   // Authentication handlers
   const handleAdminLogin = (credentials: { username: string; password: string }) => {
     // Simulate admin authentication
     setUser({ username: credentials.username, role: "admin" })
     setUserRole("admin")
-    setAuthState("admin-dashboard")
+    setAuthState("dashboard")
+    setActiveSection("home")
   }
 
   const handleCustomerLogin = (credentials: { email: string; password: string }) => {
     // Simulate customer authentication
     setUser({ email: credentials.email, role: "customer" })
     setUserRole("customer")
-    setAuthState("customer-dashboard")
+    setAuthState("dashboard")
+    setActiveSection("home")
   }
 
   const handleCustomerSignup = (userData: any) => {
     // Simulate customer registration
     setUser({ ...userData, role: "customer" })
     setUserRole("customer")
-    setAuthState("customer-dashboard")
+    setAuthState("dashboard")
+    setActiveSection("home")
   }
 
   const handleLogout = () => {
     setUser(null)
     setUserRole(null)
     setAuthState("selection")
+    setActiveSection("home")
   }
 
-  // Sample transaction data
-  const transactions = [
-    {
-      id: "TXN001",
-      type: "Buy",
-      network: "MTN",
-      amount: "₦2,000",
-      rate: "95%",
-      profit: "₦100",
-      status: "Completed",
-      time: "2 mins ago",
-    },
-    {
-      id: "TXN002",
-      type: "Sell",
-      network: "Airtel",
-      amount: "₦5,000",
-      rate: "100%",
-      profit: "₦250",
-      status: "Completed",
-      time: "5 mins ago",
-    },
-    {
-      id: "TXN003",
-      type: "Buy",
-      network: "Glo",
-      amount: "₦1,500",
-      rate: "95%",
-      profit: "₦75",
-      status: "Pending",
-      time: "8 mins ago",
-    },
-    {
-      id: "TXN004",
-      type: "Sell",
-      network: "9mobile",
-      amount: "₦3,000",
-      rate: "100%",
-      profit: "₦150",
-      status: "Completed",
-      time: "12 mins ago",
-    },
-  ]
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section)
+  }
 
   // Render authentication screens
   if (authState === "selection") {
@@ -124,15 +80,28 @@ export default function DrArabDataCenter() {
     )
   }
 
-  // Replace the main dashboard rendering section (after authentication screens) with:
-  // Main dashboard - render appropriate dashboard based on user role
-  if (authState === "admin-dashboard") {
-    return <AdminDashboard user={user} onLogout={handleLogout} />
+  // Main dashboard with sidebar navigation
+  if (authState === "dashboard" && userRole) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-amber-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800">
+        <Sidebar
+          user={user}
+          userRole={userRole}
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          onLogout={handleLogout}
+        />
+
+        <main className="flex-1 p-6 overflow-auto">
+          {activeSection === "home" && <HomeSection user={user} userRole={userRole} />}
+          {activeSection === "wallet" && <WalletSection user={user} userRole={userRole} />}
+          {activeSection === "profile" && <ProfileSection user={user} userRole={userRole} />}
+          {activeSection === "contact" && <ContactSection user={user} userRole={userRole} />}
+          {activeSection === "admin-credentials" && userRole === "admin" && <AdminCredentialsSection user={user} />}
+        </main>
+      </div>
+    )
   }
 
-  if (authState === "customer-dashboard") {
-    return <UserDashboard user={user} onLogout={handleLogout} />
-  }
-
-  // Remove the existing dashboard JSX code that was previously here
+  return null
 }
