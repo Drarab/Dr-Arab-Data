@@ -1,4 +1,6 @@
 # Dr Arab Data Center - Ads.txt File
+# Powered by BOIJELUX
+# Contact: admin@drarab.com
 # Updated for maximum ad revenue optimization
 
 # Google AdSense

@@ -1,506 +1,433 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Wallet,
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Building,
-  Copy,
-  Send,
-  History,
-  CreditCard,
-  Phone,
-  Wifi,
-} from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { CreditCard, Phone, Wifi, Plus, AlertCircle } from "lucide-react"
+import { useAuth } from "@/lib/auth"
+import { useTransactions } from "@/lib/transactions"
+import { useToast } from "@/hooks/use-toast"
 
-interface WalletSectionProps {
-  user: any
-  userRole: "admin" | "customer"
-}
+export function WalletSection() {
+  const { user, updateWallet } = useAuth()
+  const { addTransaction } = useTransactions()
+  const { toast } = useToast()
 
-export function WalletSection({ user, userRole }: WalletSectionProps) {
-  const [depositAmount, setDepositAmount] = useState("")
-  const [selectedBank, setSelectedBank] = useState("")
-  const [sellAmount, setSellAmount] = useState("")
-  const [sellNetwork, setSellNetwork] = useState("")
-  const [sellType, setSellType] = useState("")
-  const [recipientPhone, setRecipientPhone] = useState("")
-  const [dataType, setDataType] = useState("")
+  // Funding state
+  const [fundAmount, setFundAmount] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const balance = userRole === "admin" ? 245231 : 2500
-  const totalEarnings = userRole === "admin" ? 45231 : 300
-  const totalSpent = userRole === "admin" ? 12500 : 1200
+  // Purchase state
+  const [purchaseType, setPurchaseType] = useState<"airtime" | "data">("airtime")
+  const [dataType, setDataType] = useState<"SME" | "Gifting" | "Corporate Gifting">("SME")
+  const [network, setNetwork] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [amount, setAmount] = useState("")
 
-  const bankAccounts = [
-    {
-      bank: "GTBank",
-      accountName: "Dr Arab Data Center",
-      accountNumber: "0123456789",
-    },
-    {
-      bank: "Access Bank",
-      accountName: "Dr Arab Data Center",
-      accountNumber: "9876543210",
-    },
-  ]
+  const networks = ["MTN", "Airtel", "Glo", "9mobile"]
 
-  const transactions = [
-    {
-      id: "TXN001",
-      type: "Data Purchase",
-      description: "1GB MTN Data to 08012345678",
-      amount: "-₦280",
-      status: "Completed",
-      time: "2 mins ago",
-      category: "expense",
+  // Data pricing based on type
+  const dataPricing = {
+    SME: {
+      "1GB": 280,
+      "2GB": 560,
+      "5GB": 1400,
+      "10GB": 2800,
     },
-    {
-      id: "TXN002",
-      type: "Deposit",
-      description: "Bank deposit confirmation",
-      amount: "+₦5,000",
-      status: "Approved",
-      time: "1 hour ago",
-      category: "income",
+    Gifting: {
+      "1GB": 320,
+      "2GB": 640,
+      "5GB": 1600,
+      "10GB": 3200,
     },
-    {
-      id: "TXN003",
-      type: "Referral Bonus",
-      description: "Bonus from @newuser referral",
-      amount: "+₦100",
-      status: "Completed",
-      time: "2 hours ago",
-      category: "income",
+    "Corporate Gifting": {
+      "1GB": 350,
+      "2GB": 700,
+      "5GB": 1750,
+      "10GB": 3500,
     },
-    {
-      id: "TXN004",
-      type: "Airtime Purchase",
-      description: "₦500 Airtel airtime to 08087654321",
-      amount: "-₦500",
-      status: "Completed",
-      time: "3 hours ago",
-      category: "expense",
-    },
-    {
-      id: "TXN005",
-      type: "Withdrawal",
-      description: "Bank transfer to GTBank",
-      amount: "-₦2,000",
-      status: "Processing",
-      time: "1 day ago",
-      category: "expense",
-    },
-  ]
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
   }
 
-  const handleDeposit = () => {
-    console.log("Deposit request submitted")
+  const handleFundWallet = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!fundAmount || Number.parseFloat(fundAmount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount to fund your wallet.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      // Simulate payment processing
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      updateWallet(Number.parseFloat(fundAmount))
+      toast({
+        title: "Wallet Funded",
+        description: `₦${Number.parseFloat(fundAmount).toLocaleString()} has been added to your wallet.`,
+      })
+      setFundAmount("")
+    } catch (error) {
+      toast({
+        title: "Funding Failed",
+        description: "Unable to fund wallet. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSellService = () => {
-    console.log("Service sold")
-  }
+  const handlePurchase = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  const dataRates = {
-    mtn: {
-      sme: { "1GB": 280, "2GB": 560, "5GB": 1400, "10GB": 2800 },
-      gifting: { "1GB": 300, "2GB": 600, "5GB": 1500, "10GB": 3000 },
-      "corporate-gifting": { "1GB": 320, "2GB": 640, "5GB": 1600, "10GB": 3200 },
-    },
-    airtel: {
-      sme: { "1GB": 270, "2GB": 540, "5GB": 1350, "10GB": 2700 },
-      gifting: { "1GB": 290, "2GB": 580, "5GB": 1450, "10GB": 2900 },
-      "corporate-gifting": { "1GB": 310, "2GB": 620, "5GB": 1550, "10GB": 3100 },
-    },
-    glo: {
-      sme: { "1GB": 260, "2GB": 520, "5GB": 1300, "10GB": 2600 },
-      gifting: { "1GB": 280, "2GB": 560, "5GB": 1400, "10GB": 2800 },
-      "corporate-gifting": { "1GB": 300, "2GB": 600, "5GB": 1500, "10GB": 3000 },
-    },
-    "9mobile": {
-      sme: { "1GB": 250, "2GB": 500, "5GB": 1250, "10GB": 2500 },
-      gifting: { "1GB": 270, "2GB": 540, "5GB": 1350, "10GB": 2700 },
-      "corporate-gifting": { "1GB": 290, "2GB": 580, "5GB": 1450, "10GB": 2900 },
-    },
+    if (!network || !phoneNumber || !amount) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const purchaseAmount = Number.parseFloat(amount)
+
+    if (user && purchaseAmount > user.walletBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Please fund your wallet to complete this purchase.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Admin minimum airtime restriction
+    if (user?.type === "admin" && purchaseType === "airtime" && purchaseAmount < 500) {
+      toast({
+        title: "Minimum Amount Required",
+        description: "Admin users must purchase at least ₦500 airtime.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      // Simulate purchase processing
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Add transaction
+      if (user) {
+        addTransaction({
+          uid: user.uid,
+          type: purchaseType,
+          dataType: purchaseType === "data" ? dataType : undefined,
+          network,
+          phone: phoneNumber,
+          amount: purchaseAmount,
+          status: "completed",
+        })
+
+        // Deduct from wallet
+        updateWallet(-purchaseAmount)
+
+        toast({
+          title: "Purchase Successful",
+          description: `${purchaseType === "airtime" ? "Airtime" : `Data (${dataType})`} purchase completed successfully.`,
+        })
+
+        // Reset form
+        setNetwork("")
+        setPhoneNumber("")
+        setAmount("")
+      }
+    } catch (error) {
+      toast({
+        title: "Purchase Failed",
+        description: "Unable to complete purchase. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* Wallet Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20 border-emerald-200 dark:border-emerald-800/50 shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Current Balance</CardTitle>
-            <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">₦{balance.toLocaleString()}</div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">Available for trading</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-800/50 shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Earnings</CardTitle>
-            <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-              ₦{totalEarnings.toLocaleString()}
-            </div>
-            <p className="text-xs text-sky-600 dark:text-sky-400">All time earnings</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800/50 shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Spent</CardTitle>
-            <TrendingDown className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">₦{totalSpent.toLocaleString()}</div>
-            <p className="text-xs text-purple-600 dark:text-purple-400">All time expenses</p>
-          </CardContent>
-        </Card>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Wallet & Purchases</h1>
+        <p className="text-gray-600 dark:text-gray-400">Fund your wallet and make purchases</p>
       </div>
 
-      {/* Main Wallet Content */}
-      <Tabs defaultValue="transactions" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-white/80 dark:bg-slate-800/80 border border-blue-200/50 dark:border-slate-700/50">
-          <TabsTrigger
-            value="transactions"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-sky-600"
-          >
-            <History className="w-4 h-4 mr-2" />
-            Transactions
-          </TabsTrigger>
-          <TabsTrigger
-            value="deposit"
-            className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-emerald-600"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Deposit
-          </TabsTrigger>
-          <TabsTrigger
-            value="spend"
-            className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-purple-600"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Spend
-          </TabsTrigger>
+      {/* Wallet Balance */}
+      <Card className="bg-gradient-to-r from-green-500 to-blue-600 text-white">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CreditCard className="mr-2 h-5 w-5" />
+            Current Balance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold">₦{user?.walletBalance.toLocaleString()}</div>
+          <p className="text-sm opacity-90 mt-2">Available for purchases</p>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="fund" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="fund">Fund Wallet</TabsTrigger>
+          <TabsTrigger value="purchase">Make Purchase</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="transactions" className="mt-6">
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
+        <TabsContent value="fund">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-800 dark:text-slate-100 flex items-center space-x-2">
-                <History className="w-5 h-5" />
-                <span>Transaction History</span>
+              <CardTitle className="flex items-center">
+                <Plus className="mr-2 h-5 w-5" />
+                Fund Your Wallet
               </CardTitle>
+              <CardDescription>Add money to your wallet to make purchases</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-blue-200/50 dark:border-slate-700/50">
-                    <TableHead className="text-slate-600 dark:text-slate-400">ID</TableHead>
-                    <TableHead className="text-slate-600 dark:text-slate-400">Type</TableHead>
-                    <TableHead className="text-slate-600 dark:text-slate-400">Description</TableHead>
-                    <TableHead className="text-slate-600 dark:text-slate-400">Amount</TableHead>
-                    <TableHead className="text-slate-600 dark:text-slate-400">Status</TableHead>
-                    <TableHead className="text-slate-600 dark:text-slate-400">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id} className="border-blue-200/50 dark:border-slate-700/50">
-                      <TableCell className="text-slate-800 dark:text-slate-100 font-medium">{transaction.id}</TableCell>
-                      <TableCell className="text-slate-800 dark:text-slate-100">{transaction.type}</TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400">{transaction.description}</TableCell>
-                      <TableCell
-                        className={
-                          transaction.amount.startsWith("+")
-                            ? "text-emerald-600 dark:text-emerald-400 font-bold"
-                            : "text-rose-600 dark:text-rose-400 font-bold"
-                        }
-                      >
-                        {transaction.amount}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={transaction.status === "Completed" ? "default" : "secondary"}
-                          className={
-                            transaction.status === "Completed"
-                              ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                              : transaction.status === "Approved"
-                                ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400"
-                                : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
-                          }
-                        >
-                          {transaction.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-slate-500 dark:text-slate-400">{transaction.time}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <form onSubmit={handleFundWallet} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fund-amount">Amount (₦)</Label>
+                  <Input
+                    id="fund-amount"
+                    type="number"
+                    placeholder="Enter amount"
+                    value={fundAmount}
+                    onChange={(e) => setFundAmount(e.target.value)}
+                    min="100"
+                    step="50"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Processing..." : "Fund Wallet"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="deposit" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-slate-800 dark:text-slate-100 flex items-center space-x-2">
-                  <Building className="w-5 h-5" />
-                  <span>Bank Account Details</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {bankAccounts.map((account, index) => (
-                  <div
-                    key={index}
-                    className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 rounded-lg p-4"
-                  >
-                    <h3 className="text-sky-700 dark:text-sky-400 font-semibold mb-2">{account.bank}</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 dark:text-slate-400">Account Name:</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-slate-800 dark:text-slate-100 text-sm">{account.accountName}</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => copyToClipboard(account.accountName)}
-                            className="text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/30 p-1"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 dark:text-slate-400">Account Number:</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-slate-800 dark:text-slate-100 font-mono">{account.accountNumber}</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => copyToClipboard(account.accountNumber)}
-                            className="text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/30 p-1"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-slate-800 dark:text-slate-100">Submit Deposit</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="deposit-amount" className="text-slate-700 dark:text-slate-300">
-                    Deposit Amount
-                  </Label>
-                  <Input
-                    id="deposit-amount"
-                    placeholder="Enter amount"
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400 dark:focus:border-emerald-500 dark:focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="selected-bank" className="text-slate-700 dark:text-slate-300">
-                    Bank Used
-                  </Label>
-                  <Select value={selectedBank} onValueChange={setSelectedBank}>
-                    <SelectTrigger className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:border-emerald-400 focus:ring-emerald-400 dark:focus:border-emerald-500 dark:focus:ring-emerald-500">
-                      <SelectValue placeholder="Select bank" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                      {bankAccounts.map((account, index) => (
-                        <SelectItem
-                          key={index}
-                          value={account.bank}
-                          className="dark:text-slate-100 dark:focus:bg-slate-700"
-                        >
-                          {account.bank}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reference" className="text-slate-700 dark:text-slate-300">
-                    Transaction Reference
-                  </Label>
-                  <Input
-                    id="reference"
-                    placeholder="Enter transaction reference"
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400 dark:focus:border-emerald-500 dark:focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/50 rounded-lg p-3">
-                  <p className="text-yellow-700 dark:text-yellow-400 text-sm">
-                    ⚠️ Deposits are manually verified by admin. Please ensure you use the correct reference.
-                  </p>
-                </div>
-
-                <Button
-                  onClick={handleDeposit}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 dark:from-emerald-600 dark:to-green-700 dark:hover:from-emerald-700 dark:hover:to-green-800 text-white shadow-md hover:shadow-lg"
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Submit Deposit Request
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="spend" className="mt-6">
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
+        <TabsContent value="purchase">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-800 dark:text-slate-100 flex items-center space-x-2">
-                <Send className="w-5 h-5" />
-                <span>Purchase Data/Airtime</span>
-              </CardTitle>
+              <CardTitle>Make a Purchase</CardTitle>
+              <CardDescription>Buy airtime or data bundles</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 rounded-lg p-4 mb-6">
-                <h3 className="text-sky-700 dark:text-sky-400 font-semibold mb-2">How it works:</h3>
-                <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
-                  <li>• Use your account balance to purchase data/airtime</li>
-                  <li>• Send directly to any phone number</li>
-                  <li>• Instant delivery after purchase</li>
-                </ul>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="sell-type" className="text-slate-700 dark:text-slate-300">
-                    Service Type
-                  </Label>
-                  <Select value={sellType} onValueChange={setSellType}>
-                    <SelectTrigger className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:border-purple-400 focus:ring-purple-400 dark:focus:border-purple-500 dark:focus:ring-purple-500">
-                      <SelectValue placeholder="Select service" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                      <SelectItem value="data" className="dark:text-slate-100 dark:focus:bg-slate-700">
-                        Data Bundle
-                      </SelectItem>
-                      <SelectItem value="airtime" className="dark:text-slate-100 dark:focus:bg-slate-700">
-                        Airtime
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              <form onSubmit={handlePurchase} className="space-y-4">
+                {/* Purchase Type Selection */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    type="button"
+                    variant={purchaseType === "airtime" ? "default" : "outline"}
+                    onClick={() => setPurchaseType("airtime")}
+                    className="h-20 flex-col"
+                  >
+                    <Phone className="h-6 w-6 mb-2" />
+                    Airtime
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={purchaseType === "data" ? "default" : "outline"}
+                    onClick={() => setPurchaseType("data")}
+                    className="h-20 flex-col"
+                  >
+                    <Wifi className="h-6 w-6 mb-2" />
+                    Data Bundle
+                  </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="data-type" className="text-slate-700 dark:text-slate-300">
-                    Data Type
-                  </Label>
-                  <Select value={dataType} onValueChange={setDataType}>
-                    <SelectTrigger className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:border-purple-400 focus:ring-purple-400 dark:focus:border-purple-500 dark:focus:ring-purple-500">
-                      <SelectValue placeholder="Select data type" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                      <SelectItem value="sme" className="dark:text-slate-100 dark:focus:bg-slate-700">
-                        SME Data
-                      </SelectItem>
-                      <SelectItem value="gifting" className="dark:text-slate-100 dark:focus:bg-slate-700">
-                        Gifting Data
-                      </SelectItem>
-                      <SelectItem value="corporate-gifting" className="dark:text-slate-100 dark:focus:bg-slate-700">
-                        Corporate Gifting
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                {/* Data Type Selection (only for data purchases) */}
+                {purchaseType === "data" && (
+                  <div className="space-y-2">
+                    <Label>Data Type</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["SME", "Gifting", "Corporate Gifting"] as const).map((type) => (
+                        <Button
+                          key={type}
+                          type="button"
+                          variant={dataType === type ? "default" : "outline"}
+                          onClick={() => setDataType(type)}
+                          className="text-xs"
+                        >
+                          {type}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="recipient-phone" className="text-slate-700 dark:text-slate-300">
-                    Recipient Phone Number
-                  </Label>
-                  <Input
-                    id="recipient-phone"
-                    placeholder="08012345678"
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-purple-400 focus:ring-purple-400 dark:focus:border-purple-500 dark:focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="sell-amount" className="text-slate-700 dark:text-slate-300">
-                    {sellType === "data" ? "Data Bundle" : "Amount"}
-                  </Label>
-                  {sellType === "data" && sellNetwork && dataType ? (
-                    <Select value={sellAmount} onValueChange={setSellAmount}>
-                      <SelectTrigger className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:border-purple-400 focus:ring-purple-400 dark:focus:border-purple-500 dark:focus:ring-purple-500">
-                        <SelectValue placeholder="Select bundle" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="network">Network</Label>
+                    <Select value={network} onValueChange={setNetwork} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select network" />
                       </SelectTrigger>
-                      <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                        {Object.entries(dataRates[sellNetwork]?.[dataType] || {}).map(([bundle, price]) => (
-                          <SelectItem
-                            key={bundle}
-                            value={bundle}
-                            className="dark:text-slate-100 dark:focus:bg-slate-700"
-                          >
-                            {bundle} - ₦{price} ({dataType.toUpperCase()})
+                      <SelectContent>
+                        {networks.map((net) => (
+                          <SelectItem key={net} value={net}>
+                            {net}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <Input
-                      id="sell-amount"
-                      placeholder={sellType === "data" ? "Select network and data type first" : "Enter amount"}
-                      value={sellAmount}
-                      onChange={(e) => setSellAmount(e.target.value)}
-                      disabled={sellType === "data"}
-                      className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-purple-400 focus:ring-purple-400 dark:focus:border-purple-500 dark:focus:ring-purple-500"
-                    />
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <Button
-                onClick={handleSellService}
-                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 dark:from-sky-600 dark:to-blue-700 dark:hover:from-sky-700 dark:hover:to-blue-800 text-white shadow-md hover:shadow-lg"
-              >
-                {sellType === "data" ? <Wifi className="w-4 h-4 mr-2" /> : <Phone className="w-4 h-4 mr-2" />}
-                Purchase {sellType === "data" ? "Data" : "Airtime"}
-              </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+234-800-000-0000"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {purchaseType === "data" ? (
+                  <div className="space-y-2">
+                    <Label>Data Plan</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(dataPricing[dataType]).map(([plan, price]) => (
+                        <Button
+                          key={plan}
+                          type="button"
+                          variant={amount === price.toString() ? "default" : "outline"}
+                          onClick={() => setAmount(price.toString())}
+                          className="flex justify-between"
+                        >
+                          <span>{plan}</span>
+                          <span>₦{price}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (₦)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="Enter amount"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      min={user?.type === "admin" ? "500" : "50"}
+                      step="50"
+                      required
+                    />
+                    {user?.type === "admin" && (
+                      <div className="flex items-center space-x-2 text-sm text-amber-600 dark:text-amber-400">
+                        <AlertCircle className="h-4 w-4" />
+                        <span>Minimum ₦500 for admin users</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Purchase Summary */}
+                {amount && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <h4 className="font-medium mb-2">Purchase Summary</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Type:</span>
+                        <span>{purchaseType === "airtime" ? "Airtime" : `Data (${dataType})`}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Network:</span>
+                        <span>{network}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Amount:</span>
+                        <span>₦{Number.parseFloat(amount || "0").toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between font-medium">
+                        <span>Wallet Balance After:</span>
+                        <span>₦{((user?.walletBalance || 0) - Number.parseFloat(amount || "0")).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isLoading || !amount || (user && Number.parseFloat(amount || "0") > user.walletBalance)}
+                >
+                  {isLoading ? "Processing..." : `Purchase ${purchaseType === "airtime" ? "Airtime" : "Data"}`}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Data Type Information */}
+      {purchaseType === "data" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="text-lg">SME Data</CardTitle>
+              <Badge variant="secondary">Most Popular</Badge>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-1">
+                <li>• Affordable pricing</li>
+                <li>• Reliable connection</li>
+                <li>• Works on all devices</li>
+                <li>• 30-day validity</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-200 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="text-lg">Gifting Data</CardTitle>
+              <Badge variant="outline">Premium</Badge>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-1">
+                <li>• Direct gifting</li>
+                <li>• Instant delivery</li>
+                <li>• No restrictions</li>
+                <li>• 30-day validity</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200 dark:border-purple-800">
+            <CardHeader>
+              <CardTitle className="text-lg">Corporate Gifting</CardTitle>
+              <Badge variant="destructive">Enterprise</Badge>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-1">
+                <li>• Bulk purchases</li>
+                <li>• Priority support</li>
+                <li>• Custom packages</li>
+                <li>• Extended validity</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

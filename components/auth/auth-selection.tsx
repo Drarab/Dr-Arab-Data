@@ -1,8 +1,8 @@
 "use client"
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Users, ArrowRight } from "lucide-react"
+import { Shield, User, Building2 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 interface AuthSelectionProps {
@@ -12,134 +12,97 @@ interface AuthSelectionProps {
 
 export function AuthSelection({ onAdminSelect, onCustomerSelect }: AuthSelectionProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        {/* Theme Toggle */}
-        <div className="flex justify-end mb-4">
-          <ThemeToggle />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-amber-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
 
+      <div className="w-full max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-            <img src="/logo.png" alt="Dr Arab Data Center Logo" className="w-full h-full object-contain" />
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img src="/logo.png" alt="Dr Arab Data Center Logo" className="w-full h-full object-contain" />
+            </div>
           </div>
           <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-2">Dr Arab Data Center</h1>
-          <p className="text-xl text-slate-600 dark:text-slate-300 mb-2">
-            Your Trusted Airtime & Data Trading Platform
+          <p className="text-lg text-slate-600 dark:text-slate-300">
+            Powered by BOIJELUX - Your trusted partner for data and airtime services
           </p>
-          <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Powered by BOIJELUX</p>
         </div>
 
-        {/* Auth Options */}
+        {/* Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Admin Login Card */}
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/90 transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl dark:shadow-2xl">
+          {/* Admin Login */}
+          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-amber-200 dark:border-amber-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-white" />
               </div>
-              <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Admin Portal</CardTitle>
-              <p className="text-slate-600 dark:text-slate-300">System Administration & Management</p>
+              <CardTitle className="text-2xl text-slate-800 dark:text-slate-100">Administrator</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                Access admin dashboard and manage platform
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-4">
-                <h3 className="text-amber-700 dark:text-amber-400 font-semibold mb-2">Admin Features:</h3>
+                <h4 className="font-semibold text-amber-700 dark:text-amber-400 mb-2">Admin Features:</h4>
                 <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
-                  <li>• Manage user accounts</li>
-                  <li>• Set trading rates</li>
-                  <li>• Monitor transactions</li>
-                  <li>• System configuration</li>
-                  <li>• Financial reports</li>
+                  <li>• Manage user accounts and transactions</li>
+                  <li>• Buy airtime with minimum ₦500 restriction</li>
+                  <li>• Sell data with all data types</li>
+                  <li>• View platform analytics and reports</li>
+                  <li>• Access admin credentials section</li>
                 </ul>
               </div>
-
               <Button
                 onClick={onAdminSelect}
-                className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 dark:from-amber-600 dark:to-yellow-700 dark:hover:from-amber-700 dark:hover:to-yellow-800 text-white group shadow-md hover:shadow-lg"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 dark:from-amber-600 dark:to-orange-700 dark:hover:from-amber-700 dark:hover:to-orange-800 text-white shadow-md hover:shadow-lg"
               >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin Login
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <Building2 className="w-4 h-4 mr-2" />
+                Continue as Admin
               </Button>
             </CardContent>
           </Card>
 
-          {/* Customer Login/Signup Card */}
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 hover:bg-white/90 dark:hover:bg-slate-800/90 transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl dark:shadow-2xl">
+          {/* Customer Login */}
+          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-sky-200 dark:border-sky-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-500 dark:to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                <Users className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-500 dark:to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-8 h-8 text-white" />
               </div>
-              <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Customer Portal</CardTitle>
-              <p className="text-slate-600 dark:text-slate-300">Buy & Sell Airtime and Data</p>
+              <CardTitle className="text-2xl text-slate-800 dark:text-slate-100">Customer</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                Access your personal dashboard and services
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 rounded-lg p-4">
-                <h3 className="text-sky-700 dark:text-sky-400 font-semibold mb-2">Customer Features:</h3>
+                <h4 className="font-semibold text-sky-700 dark:text-sky-400 mb-2">Customer Features:</h4>
                 <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
-                  <li>• Sell airtime at 95% rate</li>
-                  <li>• Buy data bundles</li>
-                  <li>• Transaction history</li>
-                  <li>• Real-time rates</li>
-                  <li>• Instant payments</li>
+                  <li>• Fund wallet and manage balance</li>
+                  <li>• Buy airtime and data bundles</li>
+                  <li>• Sell data/airtime to other users</li>
+                  <li>• Choose from SME, Gifting, Corporate data</li>
+                  <li>• Track transaction history</li>
                 </ul>
               </div>
-
-              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-lg p-3">
-                <p className="text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                  🎉 New customers get ₦100 bonus!
-                </p>
-              </div>
-
               <Button
                 onClick={onCustomerSelect}
-                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 dark:from-sky-600 dark:to-blue-700 dark:hover:from-sky-700 dark:hover:to-blue-800 text-white group shadow-md hover:shadow-lg"
+                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 dark:from-sky-600 dark:to-blue-700 dark:hover:from-sky-700 dark:hover:to-blue-800 text-white shadow-md hover:shadow-lg"
               >
-                <Users className="w-4 h-4 mr-2" />
-                Customer Access
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <User className="w-4 h-4 mr-2" />
+                Continue as Customer
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Features Section */}
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
-            Why Choose Dr Arab Data Center?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-green-500 dark:from-emerald-500 dark:to-green-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span className="text-white font-bold">95%</span>
-              </div>
-              <h3 className="text-slate-800 dark:text-slate-100 font-semibold mb-2">Best Rates</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm">
-                Get 95% value when selling your airtime - the best rate in the market
-              </p>
-            </div>
-
-            <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <div className="w-12 h-12 bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-500 dark:to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span className="text-white font-bold">24/7</span>
-              </div>
-              <h3 className="text-slate-800 dark:text-slate-100 font-semibold mb-2">Always Available</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm">
-                Round-the-clock service with instant transaction processing
-              </p>
-            </div>
-
-            <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-slate-800 dark:text-slate-100 font-semibold mb-2">Secure & Trusted</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm">
-                Advanced security measures to protect your transactions and data
-              </p>
-            </div>
-          </div>
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            © 2024 Dr Arab Data Center. Powered by BOIJELUX. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

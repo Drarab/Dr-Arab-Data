@@ -24,11 +24,6 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
   }
 
   .dark {
@@ -51,11 +46,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
   }
 }
 
@@ -66,29 +56,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Custom dark mode styles */
-.dark {
-  /* Deep blue and gold theme for dark mode */
-  --dr-arab-bg-primary: 220 26% 14%;
-  --dr-arab-bg-secondary: 221 39% 11%;
-  --dr-arab-bg-card: 220 13% 18%;
-  --dr-arab-text-primary: 210 40% 98%;
-  --dr-arab-text-secondary: 215 20.2% 65.1%;
-  --dr-arab-accent-blue: 217 91% 60%;
-  --dr-arab-accent-gold: 45 93% 58%;
-  --dr-arab-border: 215 27.9% 16.9%;
-}
-
-/* Light mode custom properties */
-:root {
-  --dr-arab-bg-primary: 200 20% 98%;
-  --dr-arab-bg-secondary: 210 40% 96%;
-  --dr-arab-bg-card: 0 0% 100%;
-  --dr-arab-text-primary: 222.2 84% 4.9%;
-  --dr-arab-text-secondary: 215.4 16.3% 46.9%;
-  --dr-arab-accent-blue: 217 91% 60%;
-  --dr-arab-accent-gold: 45 93% 47%;
-  --dr-arab-border: 214.3 31.8% 91.4%;
 }

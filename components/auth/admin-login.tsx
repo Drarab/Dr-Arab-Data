@@ -3,12 +3,14 @@
 import type React from "react"
 
 import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Shield, Eye, EyeOff, Lock, User } from "lucide-react"
+import { ArrowLeft, Shield, Eye, EyeOff } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useAuth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 
 interface AdminLoginProps {
   onLogin: (credentials: { username: string; password: string }) => void
@@ -16,8 +18,9 @@ interface AdminLoginProps {
 }
 
 export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const { login } = useAuth()
+  const { toast } = useToast()
+  const [credentials, setCredentials] = useState({ username: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -25,108 +28,120 @@ export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      onLogin({ username, password })
+    try {
+      const success = await login(credentials.username, credentials.password, "admin")
+      if (success) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome to the admin dashboard!",
+        })
+        onLogin(credentials)
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Invalid credentials. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Login Error",
+        description: "An error occurred during login.",
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950 flex items-center justify-center p-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      <Card className="w-full max-w-md bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-xl dark:shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-            <img src="/logo.png" alt="Dr Arab Data Center Logo" className="w-full h-full object-contain" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Admin Access</CardTitle>
-          <p className="text-slate-600 dark:text-slate-300">Dr Arab Data Center - Admin Portal</p>
-          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Powered by BOIJELUX</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="admin-username" className="text-slate-700 dark:text-slate-300">
-                Admin Username
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
+      <div className="w-full max-w-md">
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-amber-200 dark:border-amber-800/50 shadow-xl">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl text-slate-800 dark:text-slate-100">Admin Login</CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-300">
+              Enter your administrator credentials
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-slate-700 dark:text-slate-300">
+                  Username
+                </Label>
                 <Input
-                  id="admin-username"
-                  type="text"
-                  placeholder="Enter admin username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 focus:border-amber-400 focus:ring-amber-400 dark:focus:border-amber-500 dark:focus:ring-amber-500"
+                  id="username"
+                  type="email"
+                  placeholder="admin@drarab.com"
+                  value={credentials.username}
+                  onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                  className="bg-white/80 dark:bg-slate-700/50 border-amber-200 dark:border-amber-800/50"
                   required
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="admin-password" className="text-slate-700 dark:text-slate-300">
-                Admin Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                <Input
-                  id="admin-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter admin password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-10 focus:border-amber-400 focus:ring-amber-400 dark:focus:border-amber-500 dark:focus:ring-amber-500"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-3">
-              <p className="text-amber-700 dark:text-amber-400 text-xs">
-                ⚠️ Admin access only. Unauthorized access is prohibited.
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 dark:from-amber-600 dark:to-yellow-700 dark:hover:from-amber-700 dark:hover:to-yellow-800 text-white shadow-md hover:shadow-lg"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Authenticating...</span>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                    className="bg-white/80 dark:bg-slate-700/50 border-amber-200 dark:border-amber-800/50 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Admin Login
-                </>
-              )}
-            </Button>
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-3">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  <strong>Demo Credentials:</strong>
+                  <br />
+                  Email: admin@drarab.com
+                  <br />
+                  Password: admin123
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 dark:from-amber-600 dark:to-orange-700 dark:hover:from-amber-700 dark:hover:to-orange-800 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In as Admin"}
+              </Button>
+            </form>
 
             <Button
-              type="button"
               variant="ghost"
               onClick={onBack}
-              className="w-full text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700/50"
+              className="w-full mt-4 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
             >
-              Back to Main
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Selection
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

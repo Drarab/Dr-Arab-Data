@@ -1,613 +1,321 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Shield,
-  Key,
-  Bell,
-  Eye,
-  EyeOff,
-  Save,
-  Camera,
-  Gift,
-  Copy,
-} from "lucide-react"
+import { User, Mail, Phone, CreditCard, Shield, Edit, Save, X, History, Settings } from "lucide-react"
+import { useAuth } from "@/lib/auth"
+import { useTransactions } from "@/lib/transactions"
+import { useToast } from "@/hooks/use-toast"
 
-interface ProfileSectionProps {
-  user: any
-  userRole: "admin" | "customer"
-}
+export function ProfileSection() {
+  const { user, updateProfile } = useAuth()
+  const { getTransactionsByUid } = useTransactions()
+  const { toast } = useToast()
 
-export function ProfileSection({ user, userRole }: ProfileSectionProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [editedName, setEditedName] = useState(user?.name || "")
+  const [editedPhone, setEditedPhone] = useState(user?.phone || "")
 
-  const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || "John",
-    lastName: user?.lastName || "Doe",
-    username: user?.username || "johndoe",
-    email: user?.email || "john@example.com",
-    phone: user?.phone || "08012345678",
-    dateOfBirth: user?.dateOfBirth || "1990-01-01",
-    state: user?.state || "lagos",
-    referralCode: user?.username || "johndoe",
-  })
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  })
-
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    transactionAlerts: true,
-    referralUpdates: true,
-  })
-
-  const nigerianStates = [
-    "Abia",
-    "Adamawa",
-    "Akwa Ibom",
-    "Anambra",
-    "Bauchi",
-    "Bayelsa",
-    "Benue",
-    "Borno",
-    "Cross River",
-    "Delta",
-    "Ebonyi",
-    "Edo",
-    "Ekiti",
-    "Enugu",
-    "FCT",
-    "Gombe",
-    "Imo",
-    "Jigawa",
-    "Kaduna",
-    "Kano",
-    "Katsina",
-    "Kebbi",
-    "Kogi",
-    "Kwara",
-    "Lagos",
-    "Nasarawa",
-    "Niger",
-    "Ogun",
-    "Ondo",
-    "Osun",
-    "Oyo",
-    "Plateau",
-    "Rivers",
-    "Sokoto",
-    "Taraba",
-    "Yobe",
-    "Zamfara",
-  ]
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+  const userTransactions = user ? getTransactionsByUid(user.uid) : []
 
   const handleSaveProfile = () => {
-    console.log("Profile saved:", profileData)
+    if (user) {
+      updateProfile({
+        name: editedName,
+        phone: editedPhone,
+      })
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved.",
+      })
+      setIsEditing(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditedName(user?.name || "")
+    setEditedPhone(user?.phone || "")
     setIsEditing(false)
   }
 
-  const handleChangePassword = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords don't match!")
-      return
-    }
-    console.log("Password changed")
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
-  }
-
-  const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications({ ...notifications, [key]: value })
-  }
+  if (!user) return null
 
   return (
     <div className="space-y-6">
-      {/* Profile Header */}
-      <Card className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/20 dark:to-blue-900/20 border-sky-200 dark:border-sky-800/50 shadow-md">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-500 dark:to-blue-600 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-white" />
-              </div>
-              <Button
-                size="sm"
-                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border-2 border-sky-200 dark:border-sky-700 shadow-md"
-              >
-                <Camera className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              </Button>
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                {profileData.firstName} {profileData.lastName}
-              </h2>
-              <p className="text-slate-600 dark:text-slate-300">@{profileData.username}</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <Badge
-                  variant="secondary"
-                  className={
-                    userRole === "admin"
-                      ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                      : "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400"
-                  }
-                >
-                  <Shield className="w-3 h-3 mr-1" />
-                  {userRole === "admin" ? "Administrator" : "Customer"}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-                >
-                  Active Account
-                </Badge>
-              </div>
-            </div>
-            <Button
-              onClick={() => setIsEditing(!isEditing)}
-              className="bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-900/50 border border-sky-200 dark:border-sky-800/50"
-            >
-              {isEditing ? "Cancel" : "Edit Profile"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage your account information and view your activity</p>
+      </div>
 
-      {/* Profile Content */}
-      <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/80 dark:bg-slate-800/80 border border-blue-200/50 dark:border-slate-700/50">
-          <TabsTrigger
-            value="personal"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-sky-600"
-          >
-            <User className="w-4 h-4 mr-2" />
-            Personal
-          </TabsTrigger>
-          <TabsTrigger
-            value="security"
-            className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-emerald-600"
-          >
-            <Key className="w-4 h-4 mr-2" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger
-            value="notifications"
-            className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-purple-600"
-          >
-            <Bell className="w-4 h-4 mr-2" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger
-            value="referral"
-            className="data-[state=active]:bg-amber-500 data-[state=active]:text-white text-slate-700 dark:text-slate-300 dark:data-[state=active]:bg-amber-600"
-          >
-            <Gift className="w-4 h-4 mr-2" />
-            Referral
-          </TabsTrigger>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="personal" className="mt-6">
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
+        <TabsContent value="profile">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Profile Card */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center">
+                      <User className="mr-2 h-5 w-5" />
+                      Profile Information
+                    </CardTitle>
+                    <CardDescription>Update your personal information</CardDescription>
+                  </div>
+                  {!isEditing ? (
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  ) : (
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" onClick={handleSaveProfile}>
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    {isEditing ? (
+                      <Input id="name" value={editedName} onChange={(e) => setEditedName(e.target.value)} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded">{user.name}</div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded flex items-center">
+                      <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                      {user.email}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    {isEditing ? (
+                      <Input id="phone" value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} />
+                    ) : (
+                      <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded flex items-center">
+                        <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                        {user.phone}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>User ID</Label>
+                    <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded flex items-center">
+                      <Shield className="w-4 h-4 mr-2 text-gray-500" />
+                      {user.uid}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Account Type</Label>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={user.type === "admin" ? "destructive" : "default"}>
+                      {user.type === "admin" ? "Administrator" : "Customer"}
+                    </Badge>
+                    {user.type === "admin" && <span className="text-sm text-gray-500">Full platform access</span>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="mr-2 h-5 w-5" />
+                  Account Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center p-4 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg">
+                  <p className="text-sm opacity-90">Wallet Balance</p>
+                  <p className="text-2xl font-bold">₦{user.walletBalance.toLocaleString()}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                    <p className="text-2xl font-bold text-blue-600">{userTransactions.length}</p>
+                    <p className="text-xs text-gray-500">Total Transactions</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                    <p className="text-2xl font-bold text-green-600">
+                      {userTransactions.filter((t) => t.status === "completed").length}
+                    </p>
+                    <p className="text-xs text-gray-500">Completed</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <p className="text-lg font-bold text-purple-600">
+                    ₦
+                    {userTransactions
+                      .filter((t) => t.status === "completed")
+                      .reduce((sum, t) => sum + t.amount, 0)
+                      .toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-500">Total Spent</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="transactions">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-800 dark:text-slate-100">Personal Information</CardTitle>
+              <CardTitle className="flex items-center">
+                <History className="mr-2 h-5 w-5" />
+                Transaction History
+              </CardTitle>
+              <CardDescription>View all your past transactions and their status</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-slate-700 dark:text-slate-300">
-                    First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    value={profileData.firstName}
-                    onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 disabled:opacity-60"
-                  />
+            <CardContent>
+              {userTransactions.length > 0 ? (
+                <div className="space-y-4">
+                  {userTransactions.map((transaction) => (
+                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          {transaction.type.includes("airtime") ? (
+                            <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          ) : (
+                            <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {transaction.type.includes("sell")
+                              ? `Sold ${transaction.type.includes("airtime") ? "Airtime" : "Data"}`
+                              : transaction.type === "airtime"
+                                ? "Airtime Purchase"
+                                : `Data Purchase`}
+                            {transaction.dataType && ` (${transaction.dataType})`}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {transaction.network} • {transaction.phone}
+                            {transaction.recipientPhone && ` → ${transaction.recipientPhone}`}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(transaction.timestamp).toLocaleDateString()} • Ref: {transaction.reference}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`font-medium ${transaction.type.includes("sell") ? "text-green-600" : "text-blue-600"}`}
+                        >
+                          {transaction.type.includes("sell") ? "+" : "-"}₦{transaction.amount.toLocaleString()}
+                        </p>
+                        <Badge
+                          variant={
+                            transaction.status === "completed"
+                              ? "default"
+                              : transaction.status === "pending"
+                                ? "secondary"
+                                : "destructive"
+                          }
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-slate-700 dark:text-slate-300">
-                    Last Name
-                  </Label>
-                  <Input
-                    id="lastName"
-                    value={profileData.lastName}
-                    onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 disabled:opacity-60"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-slate-700 dark:text-slate-300">
-                  Username
-                </Label>
-                <Input
-                  id="username"
-                  value={profileData.username}
-                  onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
-                  disabled={!isEditing}
-                  className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 disabled:opacity-60"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 disabled:opacity-60"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300">
-                  Phone Number
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 disabled:opacity-60"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth" className="text-slate-700 dark:text-slate-300">
-                    Date of Birth
-                  </Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={profileData.dateOfBirth}
-                      onChange={(e) => setProfileData({ ...profileData, dateOfBirth: e.target.value })}
-                      disabled={!isEditing}
-                      className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 disabled:opacity-60"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state" className="text-slate-700 dark:text-slate-300">
-                    State
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
-                    <Select
-                      value={profileData.state}
-                      onValueChange={(value) => setProfileData({ ...profileData, state: value })}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 disabled:opacity-60">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                        {nigerianStates.map((state) => (
-                          <SelectItem
-                            key={state}
-                            value={state.toLowerCase()}
-                            className="dark:text-slate-100 dark:focus:bg-slate-700"
-                          >
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              {isEditing && (
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                    className="text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-600"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveProfile}
-                    className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 dark:from-sky-600 dark:to-blue-700 dark:hover:from-sky-700 dark:hover:to-blue-800 text-white"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </Button>
+              ) : (
+                <div className="text-center py-8">
+                  <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No transactions yet</p>
+                  <p className="text-sm text-gray-400">Your transaction history will appear here</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="security" className="mt-6">
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
+        <TabsContent value="settings">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-800 dark:text-slate-100">Security Settings</CardTitle>
+              <CardTitle className="flex items-center">
+                <Settings className="mr-2 h-5 w-5" />
+                Account Settings
+              </CardTitle>
+              <CardDescription>Manage your account preferences and security</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/50 rounded-lg">
+                <h4 className="font-medium text-yellow-700 dark:text-yellow-400 mb-2">Account Information</h4>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <strong>Account Created:</strong> {user.createdAt.toLocaleDateString()}
+                  </p>
+                  <p>
+                    <strong>User ID:</strong> {user.uid}
+                  </p>
+                  <p>
+                    <strong>Account Type:</strong> {user.type === "admin" ? "Administrator" : "Customer"}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> <Badge variant="default">Active</Badge>
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-4">
-                <h3 className="text-slate-800 dark:text-slate-100 font-semibold">Change Password</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword" className="text-slate-700 dark:text-slate-300">
-                      Current Password
-                    </Label>
-                    <div className="relative">
-                      <Key className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-3 top-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                      >
-                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword" className="text-slate-700 dark:text-slate-300">
-                      New Password
-                    </Label>
-                    <div className="relative">
-                      <Key className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                      >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300">
-                      Confirm New Password
-                    </Label>
-                    <div className="relative">
-                      <Key className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className="bg-white/80 dark:bg-slate-700/50 border-blue-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 pl-10 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={handleChangePassword}
-                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 dark:from-emerald-600 dark:to-green-700 dark:hover:from-emerald-700 dark:hover:to-green-800 text-white"
-                  >
-                    <Key className="w-4 h-4 mr-2" />
-                    Change Password
+                <h4 className="font-medium">Security Settings</h4>
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start bg-transparent" disabled>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Change Password (Coming Soon)
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start bg-transparent" disabled>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Enable Two-Factor Authentication (Coming Soon)
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start bg-transparent" disabled>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Verify Phone Number (Coming Soon)
                   </Button>
                 </div>
               </div>
 
-              <div className="border-t border-blue-200/50 dark:border-slate-700/50 pt-6">
-                <h3 className="text-slate-800 dark:text-slate-100 font-semibold mb-4">Two-Factor Authentication</h3>
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-amber-700 dark:text-amber-400 font-medium">Enable 2FA</h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-300">
-                        Add an extra layer of security to your account
-                      </p>
-                    </div>
-                    <Switch />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications" className="mt-6">
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-slate-800 dark:text-slate-100">Notification Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div>
-                    <h4 className="text-slate-800 dark:text-slate-100 font-medium">Email Notifications</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Receive updates and alerts via email</p>
-                  </div>
-                  <Switch
-                    checked={notifications.emailNotifications}
-                    onCheckedChange={(value) => handleNotificationChange("emailNotifications", value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div>
-                    <h4 className="text-slate-800 dark:text-slate-100 font-medium">SMS Notifications</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Receive important alerts via SMS</p>
-                  </div>
-                  <Switch
-                    checked={notifications.smsNotifications}
-                    onCheckedChange={(value) => handleNotificationChange("smsNotifications", value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div>
-                    <h4 className="text-slate-800 dark:text-slate-100 font-medium">Push Notifications</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Receive browser push notifications</p>
-                  </div>
-                  <Switch
-                    checked={notifications.pushNotifications}
-                    onCheckedChange={(value) => handleNotificationChange("pushNotifications", value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div>
-                    <h4 className="text-slate-800 dark:text-slate-100 font-medium">Transaction Alerts</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Get notified about all transactions</p>
-                  </div>
-                  <Switch
-                    checked={notifications.transactionAlerts}
-                    onCheckedChange={(value) => handleNotificationChange("transactionAlerts", value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div>
-                    <h4 className="text-slate-800 dark:text-slate-100 font-medium">Referral Updates</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Updates about your referral program</p>
-                  </div>
-                  <Switch
-                    checked={notifications.referralUpdates}
-                    onCheckedChange={(value) => handleNotificationChange("referralUpdates", value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="referral" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-slate-800 dark:text-slate-100 flex items-center space-x-2">
-                  <Gift className="w-5 h-5" />
-                  <span>Your Referral Code</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800/50 rounded-lg p-6 text-center">
-                  <h3 className="text-slate-800 dark:text-slate-100 text-2xl font-bold mb-2">
-                    {profileData.referralCode}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Share this code with friends</p>
-                  <Button
-                    onClick={() => copyToClipboard(profileData.referralCode)}
-                    className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/50"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Code
+                <h4 className="font-medium">Preferences</h4>
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start bg-transparent" disabled>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Notifications (Coming Soon)
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start bg-transparent" disabled>
+                    <Phone className="w-4 h-4 mr-2" />
+                    SMS Notifications (Coming Soon)
                   </Button>
                 </div>
-
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-lg p-4">
-                  <h3 className="text-emerald-700 dark:text-emerald-400 font-semibold mb-2">Referral Benefits:</h3>
-                  <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
-                    <li>• Earn ₦100 for each successful referral</li>
-                    <li>• Instant credit to your account</li>
-                    <li>• No limit on referrals</li>
-                    <li>• Track all your referrals</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-blue-200/50 dark:border-slate-700/50 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-slate-800 dark:text-slate-100">Referral Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-sky-700 dark:text-sky-400">3</div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Total Referrals</p>
-                  </div>
-                  <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">₦300</div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Total Earned</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-slate-800 dark:text-slate-100 font-semibold">Recent Referrals</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                      <span className="text-slate-800 dark:text-slate-100">@newuser1</span>
-                      <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                        +₦100
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                      <span className="text-slate-800 dark:text-slate-100">@newuser2</span>
-                      <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                        +₦100
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                      <span className="text-slate-800 dark:text-slate-100">@newuser3</span>
-                      <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                        +₦100
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

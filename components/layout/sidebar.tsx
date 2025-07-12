@@ -3,162 +3,168 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Home,
+  Wallet,
+  User,
+  MessageCircle,
+  LogOut,
+  Menu,
+  X,
+  Shield,
+  Users,
+  BarChart3,
+  Settings,
+  Phone,
+  Wifi,
+  Send,
+  Info,
+} from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Home, Wallet, User, Phone, Shield, ChevronLeft, ChevronRight, LogOut } from "lucide-react"
+import { useAuth } from "@/lib/auth"
 
 interface SidebarProps {
-  user: any
-  userRole: "admin" | "customer"
   activeSection: string
   onSectionChange: (section: string) => void
-  onLogout: () => void
 }
 
-export function Sidebar({ user, userRole, activeSection, onSectionChange, onLogout }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+  const { user, logout } = useAuth()
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-  const navigationItems = [
-    {
-      id: "home",
-      label: "Home",
-      icon: Home,
-      description: "Dashboard overview",
-    },
-    {
-      id: "wallet",
-      label: "Wallet",
-      icon: Wallet,
-      description: "Balance & transactions",
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      icon: User,
-      description: "Account settings",
-    },
-    {
-      id: "contact",
-      label: "Contact",
-      icon: Phone,
-      description: "Support & help",
-    },
-  ]
+  const menuItems =
+    user?.type === "admin"
+      ? [
+          { id: "home", label: "Dashboard", icon: Home },
+          { id: "buy-airtime", label: "Buy Airtime", icon: Phone },
+          { id: "sell-data", label: "Sell Data", icon: Wifi },
+          { id: "users", label: "User Management", icon: Users },
+          { id: "analytics", label: "Analytics", icon: BarChart3 },
+          { id: "credentials", label: "Admin Credentials", icon: Settings },
+        ]
+      : [
+          { id: "home", label: "Dashboard", icon: Home },
+          { id: "wallet", label: "Wallet & Purchases", icon: Wallet },
+          { id: "sell-services", label: "Sell Services", icon: Send },
+          { id: "data-types", label: "Data Types Info", icon: Info },
+          { id: "profile", label: "Profile", icon: User },
+          { id: "contact", label: "Contact", icon: MessageCircle },
+        ]
 
-  // Add admin-specific items
-  if (userRole === "admin") {
-    navigationItems.push({
-      id: "admin-credentials",
-      label: "Admin Panel",
-      icon: Shield,
-      description: "System management",
-    })
+  const handleLogout = () => {
+    logout()
+    setIsMobileOpen(false)
+  }
+
+  const handleMenuClick = (sectionId: string) => {
+    onSectionChange(sectionId)
+    setIsMobileOpen(false)
   }
 
   return (
-    <div
-      className={`${
-        isCollapsed ? "w-16" : "w-64"
-      } transition-all duration-300 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-r border-blue-200/50 dark:border-slate-700/50 shadow-lg flex flex-col h-screen sticky top-0`}
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-blue-200/50 dark:border-slate-700/50">
-        <div className="flex items-center justify-between">
-          {!isCollapsed && (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="md:hidden fixed top-4 left-4 z-50"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+      >
+        {isMobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
+      {/* Sidebar */}
+      <div
+        className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0 md:static md:inset-0
+      `}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 flex items-center justify-center">
+              <div className="w-10 h-10 flex items-center justify-center">
                 <img src="/logo.png" alt="Dr Arab Data Center Logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Dr Arab</h2>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Data Center</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Dr Arab Data</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">BOIJELUX</p>
               </div>
             </div>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-          >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </Button>
-        </div>
-      </div>
-
-      {/* User Info */}
-      {!isCollapsed && (
-        <div className="p-4 border-b border-blue-200/50 dark:border-slate-700/50">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-500 dark:to-blue-600 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
-                {user?.firstName || user?.username || "User"}
-              </p>
-              <Badge
-                variant="secondary"
-                className={
-                  userRole === "admin"
-                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs"
-                    : "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 text-xs"
-                }
-              >
-                {userRole === "admin" ? "Admin" : "Customer"}
-              </Badge>
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon
-          const isActive = activeSection === item.id
-
-          return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              onClick={() => onSectionChange(item.id)}
-              className={`w-full justify-start h-auto p-3 ${
-                isActive
-                  ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800/50"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/50"
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${isCollapsed ? "" : "mr-3"} flex-shrink-0`} />
-              {!isCollapsed && (
-                <div className="text-left">
-                  <div className="font-medium">{item.label}</div>
-                  <div className="text-xs opacity-70">{item.description}</div>
+          {/* User Info */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                {user?.type === "admin" ? (
+                  <Shield className="w-5 h-5 text-white" />
+                ) : (
+                  <User className="w-5 h-5 text-white" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.name}</p>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={user?.type === "admin" ? "destructive" : "default"} className="text-xs">
+                    {user?.type === "admin" ? "Admin" : "Customer"}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {user?.uid}
+                  </Badge>
                 </div>
-              )}
-            </Button>
-          )
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-blue-200/50 dark:border-slate-700/50 space-y-2">
-        {!isCollapsed && (
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-slate-600 dark:text-slate-400">Theme</span>
-            <ThemeToggle />
+              </div>
+            </div>
+            <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <p className="text-xs text-green-600 dark:text-green-400">Balance</p>
+              <p className="text-sm font-bold text-green-700 dark:text-green-300">
+                ₦{user?.walletBalance.toLocaleString()}
+              </p>
+            </div>
           </div>
-        )}
-        <Button
-          variant="ghost"
-          onClick={onLogout}
-          className={`w-full justify-start text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 ${
-            isCollapsed ? "px-2" : ""
-          }`}
-        >
-          <LogOut className={`w-4 h-4 ${isCollapsed ? "" : "mr-2"}`} />
-          {!isCollapsed && "Logout"}
-        </Button>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Button
+                  key={item.id}
+                  variant={activeSection === item.id ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => handleMenuClick(item.id)}
+                >
+                  <Icon className="w-4 h-4 mr-3" />
+                  {item.label}
+                </Button>
+              )
+            })}
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Theme</span>
+              <ThemeToggle />
+            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-3" />
+              Logout
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden" onClick={() => setIsMobileOpen(false)} />
+      )}
+    </>
   )
 }
